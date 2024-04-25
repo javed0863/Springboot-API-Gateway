@@ -1,0 +1,1 @@
+It is an app exposing just 1 API which is to be invoked via API Gateway

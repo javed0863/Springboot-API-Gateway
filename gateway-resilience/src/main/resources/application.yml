@@ -1,0 +1,38 @@
+server:
+  port: 8081
+
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: resource-server
+          uri: http://localhost:8080
+          predicates: Path=/service1/greet
+          metadata:
+            response-timeout: 1200    # Timeout limit (in milliseconds) for respective route, after timeout fallbackUri will be called
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: resource-service
+                fallbackUri: forward:/resource-fallback
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      resource-service:
+        registerHealthIndicator: true
+#        slidingWindowSize: 4                     #unit request
+#        permittedNumberOfCallsInHalfOpenState: 5  #unit request
+#        failureRateThreshold: 50                  #percent
+#        waitDurationInOpenState: 10000            #10 seconds
+  timelimiter:
+    instances:
+      resource-service:
+        timeoutDuration: 5s     # Overall timeout for all the APIs configured in API gateway
+
+logging:
+  level:
+    root: info
+
+management.endpoints.web.exposure.include: '*'
+management.health.circuitbreakers.enabled: true
